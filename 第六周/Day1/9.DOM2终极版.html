@@ -52,6 +52,7 @@
         e.preventDefault = e.preventDefault || function () {
                 e.returnValue = false;
             };
+        //e.stopPropagation 是一个方法，函数数据类型的，所以在IE中要用函数将其包住，不能直接赋值使用
         e.stopPropagation = e.stopPropagation || function () {
                 e.cancelBubble = true
             };
