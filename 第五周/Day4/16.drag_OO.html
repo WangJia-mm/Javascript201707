@@ -37,7 +37,9 @@
     new Darg('#red4');
     function Darg(id) { // 类中this当前实例
         var that = this;
+//        console.log(id);//传入的ID个数，下面根据id来获取元素
         that.el = document.getElementById(id.slice(1));
+//        console.log(that.el);
         that.el.onmousedown = function (e) { // this 是当前元素
             this.style.zIndex = 10;
             var winW = document.documentElement.clientWidth || document.body.clientWidth;
