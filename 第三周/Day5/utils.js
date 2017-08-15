@@ -28,7 +28,6 @@ var utils = (function () {
             document.documentElement[attr] = val;
             document.body[attr] = val;
         }
-
     }
 
     // 获取元素距离body的偏移
@@ -412,4 +411,5 @@ var utils = (function () {
         prepend: prepend,
         insertAfter: insertAfter
     }
+
 })();
