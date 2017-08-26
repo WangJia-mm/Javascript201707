@@ -41,7 +41,6 @@
     .registerBtn {
       width: 2.37rem;
       height: .71rem;
-      color: #fff;
       font-size: .35rem;
       background-color: #ff8a63;
       text-align: center;
@@ -49,6 +48,9 @@
       margin: .3rem auto .2rem;
       .radius(50px);
       box-shadow: 0 4px rgba(49, 49, 49, 0.13);
+      a{
+        color: #fff;
+      }
     }
     // search
     .search {
@@ -76,6 +78,17 @@
         color: #fff;
         background-color: #44a1e2;
       }
+    }
+    .searchFixed{
+      z-index: 111;
+      transition: all 300ms linear;
+      padding: 5px 0;
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      margin: auto;
+      background-color: #73bef7;
     }
 
   }
@@ -160,6 +173,11 @@
           }
         }
       }
+      .loadMore {
+        font-size: 15px;
+        text-align: center;
+        padding: 10px 0 5px;
+     }
   }
 }
 

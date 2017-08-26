@@ -2,15 +2,21 @@ $(function () {
     let url = window.location.href;
     let regIndex = /index/;
     let regRegister = /register/;
+    let regSearch = /search/;
     //  API
     const REQ_API = {
         // http://localhost:8090/vote/index/data?limit=10&offset=0
         indexUrl: '/vote/index/data', // 首页加载数据api
         loginUrl: '/vote/index/info',
-        registerUrl: '/vote/register/data'
+        registerUrl: '/vote/register/data',
+        voteUrl: '/vote/index/poll',
+        searchUrl: '/vote/index/search'
     };
     // 工具方法
     let utilsObj = {
+        offset: 0,
+        limit: 10,
+        total: 0,
         // localStorage 操作
         // 获取localStorage
         getStorage(key) {
@@ -49,7 +55,7 @@ $(function () {
                 </div>
                 <div class="vote">
                     <span>${item.vote}票</span>
-                    <div class="voteBtn">投TA一票</div>
+                    <div class="voteBtn" data-id=${item.id}>投TA一票</div>
                 </div>
             </li>
                
@@ -73,9 +79,143 @@ $(function () {
             let {getStorage, setStorage, removeStorage} = utilsObj;
 
             // 用户登录
-            $submitBtn.click(function () {
-                let id = $usernum.val();
-                let password = $userpassword.val();
+           utilsObj.loginBindEvent();
+
+            // 登录框显示事件
+            $signIn.click(function () {
+                let voteUser = getStorage('voteUser'); // 获取本地存储的登录用户信息
+                $mask.show(); // 控制弹窗显示
+                if (voteUser) { // 如果存在 说明 已登录状态
+                    $userLogined.find('.username').html(voteUser.username);
+                    $userLogin.hide();
+                    $userLogined.show();
+                    return;
+                }
+                // 未登录状态
+                $userLogin.show();
+                $userLogined.hide();
+            });
+            $mask.on('touchmove', (e) => { // 防止滚动穿透
+                e.preventDefault();
+            });
+            $mask.click(function (e) { // 点击遮罩层自身隐藏
+                let tar = e.target;
+                if (tar.id === 'mask') {
+                    $(this).hide();
+                }
+            });
+            let winH = $('html')[0].clientHeight;
+            let body = $('body')[0];
+            let searchTop = null;
+            setTimeout(function () {
+                searchTop = $('.search').offset().top;
+                console.log(searchTop);
+            }, 50);
+            $(window).scroll(function () {
+                let sTop = body.scrollTop;
+                let sHei = body.scrollHeight;
+                if(sTop >= searchTop) {
+                    $('.search').parent('div').addClass('searchFixed');
+                } else {
+                    $('.search').parent('div').removeClass('searchFixed');
+                }
+                // 已经到达底部 并且 当前已经加载的数据条数没有超出总条数时候 再加载更多
+                if(sTop + winH >= sHei && utilsObj.offset < utilsObj.total) {
+                    $('.loadMore').html('加载中...');
+                    utilsObj.loadMore(); // 加载更多
+                }
+            });
+            
+             utilsObj.voteBindBtn();
+
+
+            // 搜索跳转
+            $('.searchBtn').click(function () {
+                let wd = $(this).prev('input').val();
+                if(/^\s*$/.test(wd)) return;
+                window.location.href = `/vote/search?wd=${wd}`;
+            });
+         
+         
+        },
+        // 获取url后面查询参数
+        getUrlParam(url) {
+          let obj = {};
+          let reg = /([^?&=]+)=([^?&=]+)/g;
+          url.replace(reg, function (a, b, c) {
+              obj[b] = c;
+          });
+          return obj;
+        },
+        loadMore(){
+              $.ajax({
+                  url: REQ_API.indexUrl,
+                  data: {
+                      offset: utilsObj.offset,
+                      limit: utilsObj.limit
+                  },
+                  dataType: 'json',
+                  success(res){
+                     if(res.errno === 0){
+                         let {limit, total, objects} = res.data;
+                         utilsObj.offset += limit;
+                         utilsObj.total = total;
+                         if(utilsObj.offset >= total) {
+                             $('.loadMore').html('已经加载全部');
+                         } else {
+                             $('.loadMore').html('加载更多');
+                         }
+                         utilsObj.indexListRender(objects);
+                     }
+                  }
+              });
+        },
+        voteBindBtn(){
+            // 投票事件绑定
+            $('.lists').delegate('.voteBtn','click', function () {
+                let id = $(this).data('id');
+                let voteUser = utilsObj.getStorage('voteUser');
+                if(voteUser){
+                    let vid = voteUser.id;
+                    if(id == vid) {
+                        alert('不能给自己投票');
+                        return;
+                    }
+                    utilsObj.voteRequest(id, vid, $(this)); // 投票请求
+                } else {
+                    $('.userLogined').hide();
+                    $('.userLogin').show();
+                    $('#mask').show();
+                    console.log('未登录');
+                }
+
+            });
+        },
+        voteRequest(id, voterId, $that){
+            $.ajax({
+                url: REQ_API.voteUrl,
+                data: {
+                    id,
+                    voterId
+                },
+                dataType: 'json',
+                success(res){
+                    if(res.errno === 0) {
+                        let $prev = $that.prev('span');
+                        let n = parseFloat($prev.html());
+                        $prev.html(`${++n}票`);
+                        alert(res.msg);
+                    } else {
+                        alert(res.msg);
+                    }
+                }
+            })
+        },
+        loginBindEvent() {
+            // 用户登录
+            $('.submitBtn').click(function () {
+                let id = $('.usernum').val();
+                let password = $('.userpassword').val();
                 let {loginUrl} = REQ_API;
                 let reg = /^\s*$/g;
                 if (reg.test(id) || reg.test(password)) {
@@ -92,7 +232,7 @@ $(function () {
                     dataType: 'json',
                     success(res) {
                         if (res.errno === 0) { // 登录成功并重新加载页面
-                            setStorage('voteUser', res.user);
+                            utilsObj.setStorage('voteUser', res.user);
                             alert('登录成功！');
                             window.location.reload();
                             // window.location.href = url;
@@ -100,42 +240,24 @@ $(function () {
                             alert(res.msg);
                         }
                     }
-                })
+                });
 
 
             });
             // 退出登录
-            $logoutBtn.click(function () {
-                removeStorage('voteUser');
-                $mask.hide();
+            $('.logoutBtn').click(function () {
+                utilsObj.removeStorage('voteUser');
+                $('#mask').hide();
+                utilsObj.isUserLogin();
             });
-
-            // 登录框显示事件
-            $signIn.click(function () {
-                let voteUser = getStorage('voteUser'); // 获取本地存储的登录用户信息
-                $mask.show(); // 控制弹窗显示
-                if (voteUser) { // 如果存在 说明 已登录状态
-                    $userLogined.find('.username').html(voteUser.username);
-                    $userLogin.hide();
-                    $userLogined.show();
-                    return;
-                }
-                // 未登录状态
-                $userLogin.show();
-                $userLogined.hide();
-
-
-            });
-            $mask.on('touchmove', (e) => { // 防止滚动穿透
-                e.preventDefault();
-            });
-            $mask.click(function (e) { // 点击遮罩层自身隐藏
-                let tar = e.target;
-                if (tar.id === 'mask') {
-                    $(this).hide();
-                }
-            });
-
+        },
+        isUserLogin(){
+            let voteUser = utilsObj.getStorage('voteUser');
+            if(voteUser){
+                $('.registerBtn').html('<a href="/vote/detail/1">个人中心</a>')
+            }else {
+                $('.registerBtn').html('<a href="/vote/register">我要报名</a>')
+            }
         }
 
     };
@@ -143,20 +265,8 @@ $(function () {
 
     if (regIndex.test(url)) {
         utilsObj.indexBindEvent(); // 绑定事件
-        $.ajax({
-            url: REQ_API.indexUrl,
-            type: 'GET',
-            data: { // 发送给后台的数据 limit=10&offset=0
-                limit: 10,
-                offset: 0
-            },
-            dataType: 'json',
-            success(res) {
-                if (res.errno === 0) {
-                    utilsObj.indexListRender(res.data.objects);
-                }
-            }
-        })
+        utilsObj.loadMore(); // 初始加载
+        utilsObj.isUserLogin();
 
     } else if (regRegister.test(url)) {
         let $registerContainer = $('#registerContainer');
@@ -227,5 +337,27 @@ $(function () {
             })
         };
         $submitBtn.on('click', valid);
+    } else if(regSearch.test(url)) {
+        let params = utilsObj.getUrlParam(window.location.href);
+         // 搜索请求
+        $.ajax({
+            url: REQ_API.searchUrl,
+            data: {content: params.wd},
+            dataType: 'json',
+            success(res) {
+                if(res.errno === 0) {
+                    if(res.data.length) {
+                        utilsObj.indexListRender(res.data);
+                        utilsObj.voteBindBtn();
+                    } else {
+                    $('.lists').html('内容未搜索到~');
+                    }
+                }
+            }
+        });
+
+        // 弹窗
+        // 用户登录
+        utilsObj.loginBindEvent();
     }
 });
