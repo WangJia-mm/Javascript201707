@@ -4,64 +4,43 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
 	<title>搜索结果页</title>
-	<link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/dev/reset.min.css">
+    <link rel="stylesheet/less" href="/stylesheets/page/search.less">
+    <script type="text/javascript" src="/javascripts/less.min.js"></script>
+    <script type="text/javascript" src="/javascripts/rem.js"></script>
 </head>
 <body>
-	<div class="content">
-        <div class="lists">
-            <div class="coming-box">
-                <ul class="coming">
-                  <!-- <li>        
-                     <div class="head">
-                        <a href="/vote/detail">
-                           <img src="/images/girl.png" alt="">
-                        </a>
-                     </div>
-                     <div class="up">
-                        <div class="vote">
-                           <span>10票</span>
-                        </div>
-                        <div class="btn">
-                           投TA一票
-                        </div>
-                     </div>
-                     <div class="descr">
-                        <a href="/vote/detail">
-                         <h3>江疏影</h3>
-                         <p>谁比我美？</p>
-                        </a>
-                     </div>     
-                  </li> -->
-                </ul>
+<a href="/vote/index">< 返回首页</a>
+<div id="container">
+    <div class="userLists">
+        <ul class="lists"></ul>
+    </div>
+
+</div>
+<div id="mask">
+    <div class="subInfo">
+        <!-- 未登录 -->
+        <div class="userLogin">
+            <h3 class="infoTitle">请输入用户信息进行验证</h3>
+            <div class="userInfo"><input placeholder="请填写用户编号" class="usernum" type="number"></div>
+            <div class="userInfo"><input placeholder="请输入用户密码" class="userpassword" type="password"></div>
+            <div class="submitBtn">提交</div>
+            <div class="registerInfo">
+                <a href="/vote/register">
+                    <span>没有用户名和编号？</span>
+                    <span>请先进行报名</span>
+                </a>
             </div>
         </div>
-        <div class="nodata">
-            没有搜索的内容～
+        <!-- 登录后 -->
+        <div class="userLogined">
+            <div class="title">Welcome!</div>
+            <div class="username"></div>
+            <div class="logoutBtn">退出登录</div>
         </div>
-	</div>
-    <div class="mask">
-      <div class="submit_info">
-        <div class="sub_title">
-          <span>请输入用户信息进行验证</span>
-        </div>
-        <div class="reitems">
-          <input type="text" class="reinput usernum" placeholder="请填写用户编号">
-        </div>
-        <div class="reitems">
-          <input type="text" class="reinput user_password" placeholder="请填写用户密码">
-        </div>
-        <div class="rebtn subbtn btn">
-          提交
-        </div>
-        <div class="no_info">
-          <a href="/vote/register">
-            <span>没有用户名和编号？</span>
-            <span>请先进行报名</span>
-          </a>
-        </div>
-      </div>
     </div>
+</div>
 </body>
 <script src="/javascripts/zepto.min.js"></script>
-<script src="/javascripts/vote.js"></script>
+<script type="text/javascript" src="/javascripts/vote2.js"></script>
 </html>
